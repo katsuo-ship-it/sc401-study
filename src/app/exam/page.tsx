@@ -5,7 +5,7 @@ import { allQuestions } from '@/data';
 import { pickQuestions } from '@/lib/shuffle';
 import { recordAnswer, toggleBookmark, loadProgress } from '@/lib/storage';
 import type { Question, StudyProgress } from '@/lib/types';
-import { EXAM_TIME_MINUTES, EXAM_QUESTION_COUNT, DOMAIN_LABELS } from '@/lib/types';
+import { EXAM_TIME_MINUTES, EXAM_QUESTION_COUNT, EXAM_PASS_SCORE, DOMAIN_LABELS } from '@/lib/types';
 import { QuestionCard } from '@/components/QuestionCard';
 import { ExplanationCard } from '@/components/ExplanationCard';
 import { Timer } from '@/components/Timer';
@@ -41,9 +41,9 @@ export default function ExamPage() {
   }, []);
 
   const handleAnswer = useCallback(
-    (isCorrect: boolean) => {
+    (isCorrect: boolean, selectedAnswers: number[]) => {
       const q = questions[currentIndex];
-      recordAnswer(q.id, q.domain, [], isCorrect);
+      recordAnswer(q.id, q.domain, selectedAnswers, isCorrect);
       setAnswers((prev) => [...prev, { questionId: q.id, isCorrect }]);
     },
     [questions, currentIndex],
@@ -58,6 +58,16 @@ export default function ExamPage() {
       setProgress(loadProgress());
     }
   }, [currentIndex, questions.length]);
+
+  useEffect(() => {
+    if (phase !== 'running') return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [phase]);
 
   const handleTimeUp = useCallback(() => {
     setTimerRunning(false);
@@ -89,7 +99,7 @@ export default function ExamPage() {
             </div>
             <div>
               <span className="text-gray-400">合格ライン:</span>{' '}
-              <span className="font-bold">700/1000点</span>
+              <span className="font-bold">{EXAM_PASS_SCORE}/1000点</span>
             </div>
             <div>
               <span className="text-gray-400">解説表示:</span>{' '}
@@ -113,7 +123,7 @@ export default function ExamPage() {
   if (phase === 'review') {
     const correctCount = answers.filter((a) => a.isCorrect).length;
     const score = Math.round((correctCount / questions.length) * 1000);
-    const passed = score >= 700;
+    const passed = score >= EXAM_PASS_SCORE;
 
     return (
       <div className="space-y-6">

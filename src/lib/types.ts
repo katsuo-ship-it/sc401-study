@@ -70,3 +70,4 @@ export const DOMAIN_COLORS: Record<Domain, string> = {
 
 export const EXAM_TIME_MINUTES = 100;
 export const EXAM_QUESTION_COUNT = 65;
+export const EXAM_PASS_SCORE = 700;

@@ -16,7 +16,7 @@ interface QuestionCardProps {
   total: number;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
-  onAnswer: (isCorrect: boolean) => void;
+  onAnswer: (isCorrect: boolean, selectedAnswers: number[]) => void;
   onNext: () => void;
   showExplanationImmediately: boolean;
 }
@@ -36,10 +36,10 @@ export function QuestionCard({
   const [isCorrect, setIsCorrect] = useState(false);
 
   const submitAnswer = useCallback(
-    (correct: boolean) => {
+    (correct: boolean, selectedAnswers: number[]) => {
       setAnswered(true);
       setIsCorrect(correct);
-      onAnswer(correct);
+      onAnswer(correct, selectedAnswers);
     },
     [onAnswer],
   );
@@ -50,7 +50,7 @@ export function QuestionCard({
     if (question.type === 'single') {
       setSelected([idx]);
       const correct = checkAnswer(question, [idx]);
-      submitAnswer(correct);
+      submitAnswer(correct, [idx]);
     } else if (question.type === 'multi') {
       const newSelected = selected.includes(idx)
         ? selected.filter((s) => s !== idx)
@@ -61,22 +61,22 @@ export function QuestionCard({
 
   const handleMultiSubmit = () => {
     const correct = checkAnswer(question, selected);
-    submitAnswer(correct);
+    submitAnswer(correct, selected);
   };
 
   const handleMatchingAnswer = (matches: Record<string, string>) => {
     const correct = checkMatchingAnswer(question, matches);
-    submitAnswer(correct);
+    submitAnswer(correct, []);
   };
 
   const handleOrderingAnswer = (ordered: string[]) => {
     const correct = checkOrderingAnswer(question, ordered);
-    submitAnswer(correct);
+    submitAnswer(correct, []);
   };
 
   const handleFillBlankAnswer = (answers: Record<string, string>) => {
     const correct = checkFillBlankAnswer(question, answers);
-    submitAnswer(correct);
+    submitAnswer(correct, []);
   };
 
   const getOptionClass = (idx: number) => {

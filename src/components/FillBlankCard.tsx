@@ -26,11 +26,13 @@ export function FillBlankCard({
 }: FillBlankCardProps) {
   const [dropped, setDropped] = useState<Record<string, string>>({});
   const [dragging, setDragging] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const usedOptions = Object.values(dropped);
   const availableOptions = options.filter((o) => !usedOptions.includes(o));
 
   const handleDragStart = (value: string) => {
+    setSelectedOption(null);
     setDragging(value);
   };
 
@@ -59,13 +61,30 @@ export function FillBlankCard({
     setDragging(null);
   };
 
-  const handleRemoveFromBlank = (placeholder: string) => {
+  const handleOptionClick = (opt: string) => {
     if (disabled) return;
-    setDropped((prev) => {
-      const next = { ...prev };
-      delete next[placeholder];
-      return next;
-    });
+    setSelectedOption((prev) => (prev === opt ? null : opt));
+  };
+
+  const handleBlankClick = (placeholder: string) => {
+    if (disabled) return;
+    if (selectedOption !== null) {
+      setDropped((prev) => {
+        const next = { ...prev };
+        for (const key of Object.keys(next)) {
+          if (next[key] === selectedOption) delete next[key];
+        }
+        next[placeholder] = selectedOption;
+        return next;
+      });
+      setSelectedOption(null);
+    } else {
+      setDropped((prev) => {
+        const next = { ...prev };
+        delete next[placeholder];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = () => {
@@ -105,7 +124,7 @@ export function FillBlankCard({
               key={i}
               onDragOver={(e) => { e.preventDefault(); }}
               onDrop={() => handleDropOnBlank(blank.placeholder)}
-              onClick={() => handleRemoveFromBlank(blank.placeholder)}
+              onClick={() => handleBlankClick(blank.placeholder)}
               className={`inline-flex items-center justify-center min-w-[120px] px-3 py-0.5 mx-1 my-0.5 rounded border-2 border-dashed text-sm font-medium cursor-pointer transition-colors ${
                 value
                   ? isCorrect === null
@@ -134,9 +153,12 @@ export function FillBlankCard({
               key={opt}
               draggable={!disabled}
               onDragStart={() => handleDragStart(opt)}
+              onClick={() => handleOptionClick(opt)}
               className={`px-3 py-1 rounded-full text-sm font-medium border transition-all select-none ${
                 disabled
                   ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-default'
+                  : selectedOption === opt
+                  ? 'border-yellow-400 bg-yellow-900/50 text-yellow-200 cursor-pointer ring-2 ring-yellow-400'
                   : 'border-blue-500 bg-blue-900/40 text-blue-200 cursor-grab active:cursor-grabbing hover:bg-blue-800/60'
               }`}
             >

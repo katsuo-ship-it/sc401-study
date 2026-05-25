@@ -35,9 +35,9 @@ export default function StudyPage() {
   }, [filteredQuestions]);
 
   const handleAnswer = useCallback(
-    (isCorrect: boolean) => {
+    (isCorrect: boolean, selectedAnswers: number[]) => {
       const q = questions[currentIndex];
-      const updated = recordAnswer(q.id, q.domain, [], isCorrect);
+      const updated = recordAnswer(q.id, q.domain, selectedAnswers, isCorrect);
       setProgress(updated);
     },
     [questions, currentIndex],

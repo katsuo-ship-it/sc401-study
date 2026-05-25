@@ -1,8 +1,7 @@
-'use client';
-
 import type { AnswerRecord, Domain, StudyProgress } from './types';
 
 const STORAGE_KEY = 'sc401-study-progress';
+const MAX_HISTORY = 500;
 
 function getDefaultProgress(): StudyProgress {
   return {
@@ -67,6 +66,9 @@ export function recordAnswer(
   }
 
   progress.history.push(record);
+  if (progress.history.length > MAX_HISTORY) {
+    progress.history = progress.history.slice(-MAX_HISTORY);
+  }
 
   saveProgress(progress);
   return progress;
